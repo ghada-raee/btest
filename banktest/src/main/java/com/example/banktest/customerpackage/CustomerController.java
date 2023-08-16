@@ -54,7 +54,7 @@ public class CustomerController {
         return GenericResponse.generateResponse(
                 "Successfully retrieved customer: {customer}".replace("{customer}", c.getId()),
                 HttpStatus.OK,
-                "success"
+                c
         );
     }
 
@@ -75,7 +75,7 @@ public class CustomerController {
         return GenericResponse.generateResponse(
                 "Successfully edited customer: {customer}".replace("{customer}", c.getId()),
                 HttpStatus.OK,
-                "success"
+                c
         );
     }
 

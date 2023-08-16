@@ -5,6 +5,7 @@ import com.example.banktest.customerpackage.Customer;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Currency;
 import java.util.Random;
 
@@ -35,6 +36,9 @@ public class Account {
     @Column(name = "is_active")
     private boolean is_active;
 
+    @Column(name = "date_opened")
+    private LocalDate dateopened;
+
     //condtr needs only type and customer id, init balance to zero, generate id in const
 
 
@@ -44,6 +48,7 @@ public class Account {
         this.currency = currency;
         balance = 0.0;
         is_active= true;
+        dateopened = LocalDate.now();
         generateAccounId();
         /*
         String id = customer.getId() + "" + digits3;
