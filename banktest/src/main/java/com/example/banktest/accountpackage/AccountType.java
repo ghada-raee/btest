@@ -1,4 +1,4 @@
-package com.example.banktest.customerpackage;
+package com.example.banktest.accountpackage;
 
 public enum AccountType {
 

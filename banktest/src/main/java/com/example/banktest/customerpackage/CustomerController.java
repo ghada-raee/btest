@@ -17,22 +17,63 @@ public class CustomerController {
     private final CustomerService customerService;
     Logger logger = LoggerFactory.getLogger(Customer.class);
     //the add is to add users for testing, not part of requirments
-    @PostMapping("/adduser")
+    @PostMapping("/addcustomer")
     @ResponseBody
-    public ResponseEntity<Object> add(
+    public ResponseEntity<Object> addCustomer(
              @RequestBody CustomerRequest customer
     ) {
 
         Customer c;
         try {
-            c = customerService.add(customer);
-        } catch (Exception exception) {
-            logger.warn(exception.getMessage());
-            return GenericResponse.generateResponse(exception.getMessage(), HttpStatus.OK, null);
+            c = customerService.addCustomer(customer);
+            logger.info("Customer added");
+        } catch (CustomerException e) {
+            logger.warn(e.getMessage());
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
         }
 
         return GenericResponse.generateResponse(
                 "Successfully created user: {user}".replace("{user}", c.getId()),
+                HttpStatus.OK,
+                "success"
+        );
+    }
+    @GetMapping("/getcustomer")
+    @ResponseBody
+    public ResponseEntity<Object> getCustomer(
+            @RequestBody CustomerRequest customer
+    ) {
+        Customer c;
+        try {
+            c = customerService.getCustomer(customer);
+        } catch (CustomerException e) {
+            logger.warn(e.getMessage());
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
+        }
+
+        return GenericResponse.generateResponse(
+                "Successfully retrieved customer: {customer}".replace("{customer}", c.getId()),
+                HttpStatus.OK,
+                "success"
+        );
+    }
+
+    @PutMapping("/editcustomer")
+    @ResponseBody
+    public ResponseEntity<Object> editCustomer(
+            @RequestBody CustomerRequest customer
+    ) {
+
+        Customer c;
+        try {
+            c = customerService.editCustomer(customer);
+        } catch (CustomerException e) {
+            logger.warn(e.getMessage());
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
+        }
+
+        return GenericResponse.generateResponse(
+                "Successfully edited customer: {customer}".replace("{customer}", c.getId()),
                 HttpStatus.OK,
                 "success"
         );

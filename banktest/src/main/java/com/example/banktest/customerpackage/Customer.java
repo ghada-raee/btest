@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Random;
 
@@ -12,6 +13,7 @@ import java.util.Random;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@ToString
 public class Customer {
 
         @Id
@@ -28,7 +30,7 @@ public class Customer {
         @Column(name = "civil_id", nullable = false, unique = true, length = 12)
         private String civilid;
         @Column(name = "date_of_birth", nullable = false)
-        private Date dob;
+        private LocalDate dob;
 
         @Column(name = "address")
         private String address;
@@ -42,7 +44,11 @@ public class Customer {
         @Column(name = "num_of_accounts", nullable = false)
         private int numOfAccounts;
 
-        public Customer(String firstname, String lastname, String civilid, Date dob, String address, String phone, String email) {
+        @Column(name = "date_joined", nullable = false)
+        private LocalDate datejoined;
+
+        public Customer(String firstname, String lastname, String civilid, LocalDate dob,
+                        String address, String phone, String email) {
                 this.firstname = firstname;
                 this.lastname = lastname;
                 this.civilid = civilid;
@@ -51,6 +57,11 @@ public class Customer {
                 this.phone = phone;
                 this.email = email;
                 numOfAccounts=0;
+                datejoined = LocalDate.now();
+                generateCustomerId();
+        }
+
+        public void generateCustomerId(){
                 Random random = new Random();
                 id = (1000000 + random.nextInt(9000000) ) +"";
         }

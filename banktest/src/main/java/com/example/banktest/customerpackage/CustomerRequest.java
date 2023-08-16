@@ -17,6 +17,6 @@ public class CustomerRequest {
 
 
     private String firstname, lastname, civilid, address, phone, email;
-    private Date dob;
+    private int day,month,year;
     private int numOfAccounts;
 }
