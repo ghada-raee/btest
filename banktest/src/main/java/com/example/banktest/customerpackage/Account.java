@@ -2,10 +2,7 @@ package com.example.banktest.customerpackage;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.intellij.lang.annotations.Pattern;
 
 import java.util.ArrayList;
@@ -15,8 +12,7 @@ import java.util.Random;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
-@Getter
+@Data
 public class Account {
     @Id
    // @GeneratedValue(strategy = GenerationType.IDENTITY)

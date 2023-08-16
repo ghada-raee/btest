@@ -1,10 +1,7 @@
 package com.example.banktest.customerpackage;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.util.Date;
@@ -14,8 +11,7 @@ import java.util.Random;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
-@Getter
+@Data
 public class Customer {
 
         @Id
