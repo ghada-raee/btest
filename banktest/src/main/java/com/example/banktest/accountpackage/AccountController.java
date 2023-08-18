@@ -1,6 +1,7 @@
 package com.example.banktest.accountpackage;
 
 import com.example.banktest.GenericResponse;
+import com.example.banktest.currencypackage.ConvertJsonRoot;
 import com.example.banktest.customerpackage.Customer;
 import com.example.banktest.customerpackage.CustomerException;
 import com.example.banktest.customerpackage.CustomerRequest;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -20,7 +22,7 @@ import java.util.List;
 public class AccountController {
     private final AccountService accountService;
 
-    Logger logger = LoggerFactory.getLogger(Account.class);
+    Logger logger = LoggerFactory.getLogger(AccountController.class);
 
     //create account
     @PostMapping("/createaccount")
@@ -114,17 +116,19 @@ public class AccountController {
     @PutMapping("/changeCurrency")
     @ResponseBody
     public ResponseEntity<Object> changeCurrency(
-            @RequestBody AccountRequest account
+            @RequestBody AccountRequest account,
+            @RequestParam(name = "to", required = true) String to,
+            @RequestParam(name = "date", required = false) String date
     ) {
 
-        Account acc;
-            acc = accountService.changeCurrency(account);
-            logger.info("Currency changed to "+acc.getCurrency().getCurrencyCode());
+        Mono<ConvertJsonRoot> acc;
+            acc = accountService.changeCurrency(account,to,date);
+            //logger.info("Currency changed to "+acc.getCurrency().getCurrencyCode());
 
         return GenericResponse.generateResponse(
                 "New Currency",
                 HttpStatus.OK,
-                acc
+                acc.block()
         );
     }
 

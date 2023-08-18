@@ -1,11 +1,14 @@
 package com.example.banktest.accountpackage;
 
+import com.example.banktest.currencypackage.ConvertJsonRoot;
+import com.example.banktest.currencypackage.CurrencyService;
 import com.example.banktest.customerpackage.Customer;
 import com.example.banktest.customerpackage.CustomerException;
 import com.example.banktest.customerpackage.CustomerRepository;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.Currency;
 import java.util.List;
@@ -19,6 +22,8 @@ public class AccountService {
 
     @Autowired //so we don't have to initiate
     private AccountRepository accountRepository;
+    @Autowired
+    CurrencyService currencyService;
     public Account createAccount(AccountRequest account) throws CustomerException, AccountException {
         String cid = account.getCustomer_id();
         Customer customer = customerRepository.findUserById(cid).orElseThrow(
@@ -73,12 +78,21 @@ public class AccountService {
         return account1.getBalance();
     }
 
-    public Account changeCurrency(AccountRequest account) {
+    public Mono<ConvertJsonRoot> changeCurrency(AccountRequest account, String to, String date) {
+
         Account account1 = accountRepository.findAccountByAccountId(account.getAccountId()).orElse(null);
-        Currency c = Currency.getInstance(account.getCurrency());
+        String url = "/convert?to="+to+"&from="+account1.getCurrency().getCurrencyCode()+"&amount="+account1.getBalance();
+
+        if(date != null && !date.isEmpty())
+            url = url + "&date="+date;
+        Mono<ConvertJsonRoot> result = currencyService.makeRequest2(url,ConvertJsonRoot.class);
+        Currency c = Currency.getInstance(to);
+        double balance = result.block().getResult();
+
         account1.setCurrency(c);
+        account1.setBalance(balance);
         accountRepository.save(account1);
-        return account1;
+        return result;
     }
 
     public Account activateAccount(AccountRequest account) {
