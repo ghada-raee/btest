@@ -19,6 +19,9 @@ public class AccountRequest {
     private String accountId, customer_id;
     private double amount;
 
+    private long transactionPartyId;
+
+    private String transactionCurrency;
     private AccountType accountType;
     private String currency; //assuming that it will be dropdown menu in the interface so the format is always correct
 

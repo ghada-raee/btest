@@ -10,13 +10,13 @@ import java.util.Currency;
 import java.util.Random;
 
 
-@Entity
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Entity(name="account")
 public class Account {
     @Id
-   // @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "account_id", length = 10)
     private String accountId;
 

@@ -11,11 +11,12 @@ import java.util.Date;
 import java.util.Random;
 
 
-@Entity
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @ToString
+@Entity(name="customer")
 public class Customer {
 
         @Id

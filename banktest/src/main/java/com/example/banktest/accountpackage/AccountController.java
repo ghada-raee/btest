@@ -99,7 +99,7 @@ public class AccountController {
             @RequestBody AccountRequest account
     ) {
 
-        AccountResponse balance;
+        TransactionResponse balance;
         try {
             balance = accountService.updateBalance(account);
             logger.info("Balance changed");

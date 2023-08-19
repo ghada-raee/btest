@@ -27,6 +27,9 @@ public class AccountService {
     private AccountRepository accountRepository;
 
     @Autowired
+    private TransactionRepository transactionRepository;
+
+    @Autowired
     CustomerService customerService;
 
     @Autowired
@@ -84,34 +87,56 @@ public class AccountService {
         return accountResponse;
     }
 
-    public AccountResponse updateBalance(AccountRequest account) throws AccountException {
+    public TransactionResponse updateBalance(AccountRequest account) throws AccountException {
         Account account1 = accountRepository.findAccountByAccountId(account.getAccountId()).orElseThrow(
                 () -> new AccountException("Account doesn't exist"));
         if(!account1.is_active())
             throw new AccountException("You cannot update the balance since your account is deactivated");
-       double amount = account1.getBalance() + account.getAmount();
-       if(amount<0)
-           throw new AccountException("You cannot deduct this amount of money");
+        long transPartyId = account.getTransactionPartyId();
+        String transPartyCurrency = account.getTransactionCurrency();
+        customerService.isEmptyOrNull(transPartyId+"");
+        customerService.isEmptyOrNull(transPartyCurrency);
+        currencyService.isValidCurrencyCode(transPartyCurrency);
+        Mono<ConvertJsonRoot> result;
+        double amount = account.getAmount();
+        if(!transPartyCurrency.equals("KWD")){
+            result = currencyService.convert("KWD", transPartyCurrency,
+                    amount + "", null);
+           double limit = result.block().getResult();
+           if(limit>1000)//1000 KWD
+               throw new AccountException("Cannot perform a transaction that is worth more than 3000 USD");
+        }
+        //if different currecies --> convert the amount based on the currency
+        if(!transPartyCurrency.equals(account1.getCurrency().getCurrencyCode())) {
+            result = currencyService.convert(account1.getCurrency().getCurrencyCode(), transPartyCurrency,
+                    amount + "", null);
+            amount = result.block().getResult();
+        }
+
+       double totalAmount = account1.getBalance() + amount;
+       if(totalAmount<0)
+           throw new AccountException("You cannot deduct this amount of money because it's below your balance");
        else
-           account1.setBalance(amount);
+           account1.setBalance(totalAmount);
         accountRepository.save(account1);
-        AccountResponse accountResponse = new AccountResponse();
-        accountResponse.convert(account1);
-        return accountResponse;
+        Transaction transaction = new Transaction(account1.getAccountId(),amount,transPartyId+"");
+        transactionRepository.save(transaction);
+
+        TransactionResponse transactionResponse = new TransactionResponse();
+        transactionResponse.convert(transaction,totalAmount);
+
+        return transactionResponse;
     }
 
     public Mono<ConvertJsonRoot> changeCurrency(AccountRequest account, String to, String date) throws AccountException {
 
         Account account1 = accountRepository.findAccountByAccountId(account.getAccountId()).orElseThrow(
                 () -> new AccountException("Account doesn't exist"));
-        String url = "/convert?to="+to+"&from="+account1.getCurrency().getCurrencyCode()+"&amount="+account1.getBalance();
 
-        if(date != null && !date.isEmpty())
-            url = url + "&date="+date;
-        Mono<ConvertJsonRoot> result = currencyService.makeRequest(url,ConvertJsonRoot.class);
+        Mono<ConvertJsonRoot> result = currencyService.convert(to,account1.getCurrency().getCurrencyCode()
+                ,account1.getBalance()+"",date);
         Currency c = Currency.getInstance(to);
         double balance = result.block().getResult();
-
         account1.setCurrency(c);
         account1.setBalance(balance);
         accountRepository.save(account1);
@@ -131,5 +156,6 @@ public class AccountService {
         accountRepository.save(account1);
 
     }
+
 
 }

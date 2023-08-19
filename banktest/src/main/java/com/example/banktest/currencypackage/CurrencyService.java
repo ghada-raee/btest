@@ -121,10 +121,25 @@ public class CurrencyService {
         return result;
     }
 
+    public Mono<ConvertJsonRoot> convert(String to, String from, String amount, String date) {
+
+        String url = "/convert?to="+to+"&from="+from+"&amount="+amount;
+        if(date != null && !date.isEmpty()) {
+            if (!isValidDateFormat(date))
+                throw new IllegalArgumentException("Date format should be YYYY-MM-DD");
+            url = url + "&date=" + date;
+
+        }
+        Mono<ConvertJsonRoot> result = makeRequest(url,ConvertJsonRoot.class);
+        if(!result.block().isSuccess())
+            throw new IllegalArgumentException("Something went wrong. Check inputs format or try again");
+        return result;
+    }
+
     private boolean isValidDateFormat(String date) {
         return date.matches("\\d{4}-\\d{2}-\\d{2}");
     }
-    private boolean isValidCurrencyCode(String currencyCode) {
+    public static boolean isValidCurrencyCode(String currencyCode) {
         try {
             Currency.getInstance(currencyCode);
             return true;

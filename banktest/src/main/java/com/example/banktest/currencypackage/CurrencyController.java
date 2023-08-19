@@ -43,7 +43,7 @@ public class CurrencyController {
         try{
             result = currencyService.listCurrency();
 
-        } catch(WebClientResponseException e){
+        } catch(Exception e){
             logger.error(e.getMessage());
             return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
         }
