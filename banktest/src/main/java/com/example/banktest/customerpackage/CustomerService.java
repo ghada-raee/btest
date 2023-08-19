@@ -1,10 +1,14 @@
 package com.example.banktest.customerpackage;
 
+import jakarta.validation.Valid;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.Period;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @Service
 @NoArgsConstructor
@@ -13,19 +17,35 @@ public class CustomerService {
     @Autowired //so we don't have to initiate
     private CustomerRepository customerRepository;
 
-    public Customer addCustomer(CustomerRequest customer) throws CustomerException {
+    public CustomerResponse addCustomer(CustomerRequest customer) throws CustomerException {
+
+        String firstname = customer.getFirstname();
+        String lastname = customer.getLastname();
         String civilId = customer.getCivilid();
+        int year = customer.getYear();
+        int month = customer.getMonth();
+        int day = customer.getDay();
+        String address = customer.getAddress();
+        String phone = customer.getPhone();
+        String email = customer.getEmail();
+        ArrayList<String> fields = new ArrayList<>(Arrays.asList(firstname,lastname,civilId,address,phone,email));
+        isEmptyOrNull(fields);
+        if(year<=0 || month<=0 || day<=0)
+            throw new IllegalArgumentException("The numbers in date of birth must be positive numbers");
         if(customerRepository.existsByCivilid(civilId))
             throw new CustomerException("Customer exists");
+
         LocalDate dob = LocalDate.of(customer.getYear(),customer.getMonth(), customer.getDay());
-        Customer c = new Customer(customer.getFirstname().trim()
-                ,customer.getLastname().trim(),
-                civilId.trim()
-                ,dob,
-                customer.getAddress().trim(),
-                customer.getPhone(),
-                customer.getEmail().trim());
-        //c.setId("5310948");
+        LocalDate currentDate = LocalDate.now();
+        Period age = Period.between(dob, currentDate);
+        if (age.getYears() < 16 || age.getYears() > 110)
+            throw new IllegalArgumentException("Age is not within legal age range");
+
+        Customer c = new Customer(firstname.trim()
+                ,lastname.trim(), civilId.trim() ,dob,
+                address.trim(),phone.trim(),
+                email.trim());
+
         boolean flag = customerRepository.existsById(c.getId());
         while(flag){
             c.generateCustomerId();
@@ -33,18 +53,24 @@ public class CustomerService {
                 break;
         }
         customerRepository.save(c);
-        return c;
+        CustomerResponse customerResponse = new CustomerResponse();
+        customerResponse.convert(c);
+        return customerResponse;
     }
 
 
-    public Customer getCustomer(CustomerRequest customer) throws CustomerException {
+    public CustomerResponse getCustomer(CustomerRequest customer) throws CustomerException {
         String civilId = customer.getCivilid();
-        Customer c = customerRepository.findUserByCivilid(civilId).orElseThrow(
+        isEmptyOrNull(civilId);
+        Customer c = customerRepository.findUserByCivilid((civilId.trim())).orElseThrow(
                 () -> new CustomerException("Customer doesn't exist"));
-        return c;
+        CustomerResponse customerResponse = new CustomerResponse();
+        customerResponse.convert(c);
+        return customerResponse;
+
     }
 
-    public Customer editCustomer(CustomerRequest customer) throws CustomerException {
+    public CustomerResponse editCustomer(CustomerRequest customer) throws CustomerException {
         Customer c = customerRepository.findUserByCivilid(customer.getCivilid()).orElseThrow(
                 () -> new CustomerException("Customer doesn't exist")); //will always exist but this is just to handle the optional
 
@@ -59,6 +85,23 @@ public class CustomerService {
             c.setPhone(phone.trim());
 
         customerRepository.save(c);
-        return c;
+        CustomerResponse customerResponse = new CustomerResponse();
+        customerResponse.convert(c);
+        return customerResponse;
+
+    }
+
+
+    public static void isEmptyOrNull(ArrayList<String> fields) throws NullPointerException {
+        for( String field : fields){
+            if(field==null || field.isEmpty())
+                throw new NullPointerException("Fill the the required fields please");
+        }
+    }
+    public static void isEmptyOrNull(String field) throws NullPointerException {
+
+            if(field==null || field.isEmpty())
+                throw new NullPointerException("Fill the the required fields please");
+
     }
 }

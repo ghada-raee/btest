@@ -2,12 +2,18 @@ package com.example.banktest.customerpackage;
 
 
 import com.example.banktest.GenericResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,39 +26,41 @@ public class CustomerController {
     @PostMapping("/addcustomer")
     @ResponseBody
     public ResponseEntity<Object> addCustomer(
+            @Valid
              @RequestBody CustomerRequest customer
     ) {
 
-        Customer c;
+        CustomerResponse c;
         try {
             c = customerService.addCustomer(customer);
             logger.info("Customer added");
-        } catch (CustomerException e) {
-            logger.warn(e.getMessage());
+        } catch (CustomerException | NullPointerException | IllegalArgumentException e) {
+            logger.error(e.getMessage());
             return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
         }
 
         return GenericResponse.generateResponse(
-                "Successfully created user: {user}".replace("{user}", c.getId()),
+                "Successfully created user:",
                 HttpStatus.OK,
-                "success"
+                c
         );
     }
     @GetMapping("/getcustomer")
     @ResponseBody
     public ResponseEntity<Object> getCustomer(
+            @Valid
             @RequestBody CustomerRequest customer
     ) {
-        Customer c;
+        CustomerResponse c;
         try {
             c = customerService.getCustomer(customer);
-        } catch (CustomerException e) {
-            logger.warn(e.getMessage());
+        } catch (CustomerException | NullPointerException e) {
+            logger.error(e.getMessage());
             return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
         }
 
         return GenericResponse.generateResponse(
-                "Successfully retrieved customer: {customer}".replace("{customer}", c.getId()),
+                "Successfully retrieved customer",
                 HttpStatus.OK,
                 c
         );
@@ -61,23 +69,28 @@ public class CustomerController {
     @PutMapping("/editcustomer")
     @ResponseBody
     public ResponseEntity<Object> editCustomer(
+            @Valid
             @RequestBody CustomerRequest customer
     ) {
 
-        Customer c;
+        CustomerResponse c;
         try {
             c = customerService.editCustomer(customer);
         } catch (CustomerException e) {
-            logger.warn(e.getMessage());
+            logger.error(e.getMessage());
             return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
         }
 
         return GenericResponse.generateResponse(
-                "Successfully edited customer: {customer}".replace("{customer}", c.getId()),
+                "Successfully edited customer",
                 HttpStatus.OK,
                 c
         );
     }
 
 
+
+
+
 }
+

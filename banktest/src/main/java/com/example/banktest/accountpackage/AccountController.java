@@ -31,18 +31,21 @@ public class AccountController {
             @RequestBody AccountRequest account
     ) {
 
-        Account acc;
+        AccountResponse acc;
         try {
             acc = accountService.createAccount(account);
             logger.info("Account added");
-        } catch (AccountException | CustomerException e) {
-            logger.warn(e.getMessage());
+        } catch (AccountException | NullPointerException e) {
+            logger.error(e.getMessage());
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
+        } catch (CustomerException e) {
+            logger.error(e.getMessage());
             return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
         }
         return GenericResponse.generateResponse(
-                "Successfully created account: {user}".replace("{user}", acc.getAccountId()),
+                "Successfully created account:",
                 HttpStatus.OK,
-                "success"
+                acc
         );
     }
 
@@ -53,12 +56,12 @@ public class AccountController {
             @RequestBody AccountRequest account
     ) {
 
-        List<Account> accs;
+        List<AccountResponse> accs;
         try {
             accs = accountService.listAccounts(account);
             logger.info("Accounts listed");
         } catch (AccountException | CustomerException e) {
-            logger.warn(e.getMessage());
+            logger.error(e.getMessage());
             return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
         }
         return GenericResponse.generateResponse(
@@ -74,14 +77,14 @@ public class AccountController {
             @RequestBody AccountRequest account
     ) {
 
-        Account acc;
-        //try {
+        AccountResponse acc;
+        try {
             acc = accountService.getAccount(account);
 
-       /* } catch (AccountException | CustomerException e) {
-            logger.warn(e.getMessage());
+        } catch (AccountException  e) {
+            logger.error(e.getMessage());
             return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
-        }*/
+        }
         return GenericResponse.generateResponse(
                 "Successfully retrieved account",
                 HttpStatus.OK,
@@ -96,12 +99,12 @@ public class AccountController {
             @RequestBody AccountRequest account
     ) {
 
-        Double balance;
+        AccountResponse balance;
         try {
             balance = accountService.updateBalance(account);
             logger.info("Balance changed");
         } catch (AccountException e) {
-            logger.warn(e.getMessage());
+            logger.error(e.getMessage());
             return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
         }
         return GenericResponse.generateResponse(
@@ -120,10 +123,14 @@ public class AccountController {
             @RequestParam(name = "to", required = true) String to,
             @RequestParam(name = "date", required = false) String date
     ) {
-
         Mono<ConvertJsonRoot> acc;
+    try{
+
             acc = accountService.changeCurrency(account,to,date);
-            //logger.info("Currency changed to "+acc.getCurrency().getCurrencyCode());
+    } catch (AccountException e) {
+        logger.error(e.getMessage());
+        return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
+    }
 
         return GenericResponse.generateResponse(
                 "New Currency",
@@ -139,14 +146,19 @@ public class AccountController {
             @RequestBody AccountRequest account
     ) {
 
-        Account acc;
-        acc = accountService.activateAccount(account);
-        logger.info("Account activated");
+        try {
+            accountService.activateAccount(account);
+            logger.info("Account activated");
+        } catch (AccountException e) {
+            logger.error(e.getMessage());
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, false);
+        }
+
 
         return GenericResponse.generateResponse(
                 "Account activated",
                 HttpStatus.OK,
-                null
+                true
         );
     }
     @PutMapping("/deactivateAccount")
@@ -155,16 +167,19 @@ public class AccountController {
             @RequestBody AccountRequest account
     ) {
 
-        Account acc;
-        acc = accountService.deactivateAccount(account);
-        logger.info("Account deactivated");
+        try{
+            accountService.deactivateAccount(account);
+            logger.info("Account deactivated");
+        } catch (AccountException e) {
+            logger.error(e.getMessage());
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, false);
+        }
 
         return GenericResponse.generateResponse(
                 "Account deactivated",
                 HttpStatus.OK,
-                null
+                true
         );
     }
 
-    //deactivate aacount
 }

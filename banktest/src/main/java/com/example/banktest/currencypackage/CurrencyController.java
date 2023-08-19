@@ -43,7 +43,7 @@ public class CurrencyController {
         try{
             result = currencyService.listCurrency();
 
-        } catch(CurrencyException e){
+        } catch(WebClientResponseException e){
             logger.error(e.getMessage());
             return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
         }
@@ -53,19 +53,18 @@ public class CurrencyController {
     @GetMapping("/change")
     @ResponseBody
     public ResponseEntity<Object> change(
-            @RequestParam(name = "start_date", required = true) String startDate,
+            @RequestParam(name = "start_date", required = true)  String startDate,
             @RequestParam(name = "end_date", required = true) String endDate,
             @RequestParam(name = "currencies", required = false) String currencies,
             @RequestParam(name = "source", required = false) String source
     ) {
-        if (!isValidDateFormat(startDate) || !isValidDateFormat(endDate))
-            return GenericResponse.generateResponse("Date format should be YYYY-MM-DD", HttpStatus.BAD_REQUEST, null);
+
         Mono<ChangeJsonRoot> result;
         try{
             result = currencyService.change(startDate,endDate,currencies,source);
-        } catch(CurrencyException e){
+        } catch(IllegalArgumentException e){
             logger.error(e.getMessage());
-            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
         }
         return GenericResponse.generateResponse("Successful", HttpStatus.OK, result.block());
 
@@ -78,15 +77,15 @@ public class CurrencyController {
             @RequestParam(name = "currencies", required = false) String currencies,
             @RequestParam(name = "source", required = false) String source
     ) {
-        if (!isValidDateFormat(date))
-            return GenericResponse.generateResponse("Date format should be YYYY-MM-DD", HttpStatus.BAD_REQUEST, null);
+
         Mono<HistoricalExchangeRateRoot> result;
         try{
             result = currencyService.historical(date,currencies,source);
-        } catch(CurrencyException e){
+        } catch(IllegalArgumentException e){
             logger.error(e.getMessage());
-            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
         }
+
         return GenericResponse.generateResponse("Successful", HttpStatus.OK, result.block());
     }
 
@@ -96,15 +95,13 @@ public class CurrencyController {
             @RequestParam(name = "currencies", required = false) String currencies,
             @RequestParam(name = "source", required = false) String source
     ) {
-
         Mono<ExchangeRateJsonRoot> result;
-
-        try{
-            result = currencyService.live(currencies, source);
-
-        } catch(CurrencyException e){
+        try {
+           result = currencyService.live(currencies, source);
+        }
+        catch(IllegalArgumentException e){
             logger.error(e.getMessage());
-            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
         }
         return GenericResponse.generateResponse("Successful", HttpStatus.OK, result.block());
 
@@ -119,31 +116,19 @@ public class CurrencyController {
             @RequestParam(name = "currencies", required = false) String currencies,
             @RequestParam(name = "source", required = false) String source
     ) {
-        if (!isValidDateFormat(startDate) || !isValidDateFormat(endDate))
-            return GenericResponse.generateResponse("Date format should be YYYY-MM-DD", HttpStatus.BAD_REQUEST, null);
+
 
         Mono<TimeFrameJson> result;
         try{
-            result = currencyService.timeframe2(startDate,endDate,currencies,source);
-        } catch(WebClientResponseException e){
+            result = currencyService.timeframe(startDate,endDate,currencies,source);
+        } catch(IllegalArgumentException e){
             logger.error(e.getMessage());
-            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
         }
         return GenericResponse.generateResponse("Successful", HttpStatus.OK, result.block());
 
     }
 
-    private boolean isValidDateFormat(String date) {
-        return date.matches("\\d{4}-\\d{2}-\\d{2}");
-    }
-    private boolean isValidCurrencyCode(String currencyCode) {
-        try {
-            Currency.getInstance(currencyCode);
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
 
 
 }

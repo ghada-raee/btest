@@ -10,6 +10,6 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ListCurrencyJsonRoot {
-    private Map<String, String> symbols;
+    private Map<String, String> currencies; //symbols
     private boolean success;
 }
