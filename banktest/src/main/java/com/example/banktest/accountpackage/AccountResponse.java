@@ -2,6 +2,7 @@ package com.example.banktest.accountpackage;
 
 import com.example.banktest.customerpackage.Customer;
 import com.example.banktest.customerpackage.CustomerResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -18,10 +19,16 @@ import java.util.Currency;
 @Data
 public class AccountResponse {
 
+
+    @Schema(description = "accountId", example = "3806175901")
     private String accountId;
+    @Schema(description = "balance", example = "26.0")
     private Double balance;
+    @Schema(description = "accountType", example = "SAVING")
     private AccountType accountType;
+    @Schema(description = "currency", example = "KWD")
     private Currency currency;
+    @Schema(description = "is_active", example = "true")
     private boolean is_active;
 
     public AccountResponse convert(Account a) {
