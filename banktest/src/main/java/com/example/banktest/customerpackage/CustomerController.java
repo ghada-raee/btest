@@ -137,7 +137,7 @@ public class CustomerController {
             c = customerService.editCustomer(customer);
         } catch (CustomerException e) {
             logger.error(e.getMessage());
-            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.OK, null);
+            return GenericResponse.generateResponse(e.getMessage(), HttpStatus.NOT_FOUND, null);
         }
 
         return GenericResponse.generateResponse(
