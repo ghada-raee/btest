@@ -42,7 +42,7 @@ public class AccountService {
 
         String cid = account.getCustomer_id().trim();
         Customer customer = customerRepository.findUserById(cid).orElseThrow(
-                () -> new CustomerException("Customer doesn't exist"));
+                () -> new CustomerException("Customer doesn't exist"));//won't
 
         if(account.getAccountType() == AccountType.SALARY &&
                 accountRepository.existsByCustomerAndAccountType(customer,account.getAccountType()))
@@ -72,16 +72,23 @@ public class AccountService {
     public List<AccountResponse> listAccounts(AccountRequest account) throws CustomerException, AccountException {
         String cid = account.getCustomer_id();
         Customer customer = customerRepository.findUserById(cid).orElseThrow(
-                () -> new CustomerException("Customer doesn't exist"));
+                () -> new CustomerException("Customer doesn't exist")); //won't happen
         if(customer.getNumOfAccounts()==0)
             throw new AccountException("you don't have any account");
-        return accountRepository.findByCustomer(customer);
+        List<Account> accs = accountRepository.findByCustomer(customer);
+        List<AccountResponse> accsres = new ArrayList<>();
+        for(Account a: accs){
+            AccountResponse accountResponse = new AccountResponse();
+            accountResponse.convert(a);
+            accsres.add(accountResponse);
+        }
+        return accsres;
 
     }
 
     public AccountResponse getAccount(AccountRequest account) throws AccountException {
         Account acc = accountRepository.findAccountByAccountId(account.getAccountId()).orElseThrow(
-                () -> new AccountException("Account doesn't exist"));
+                () -> new AccountException("Account doesn't exist"));//won't happen
         AccountResponse accountResponse = new AccountResponse();
         accountResponse.convert(acc);
         return accountResponse;
@@ -89,23 +96,25 @@ public class AccountService {
 
     public TransactionResponse updateBalance(AccountRequest account) throws AccountException {
         Account account1 = accountRepository.findAccountByAccountId(account.getAccountId()).orElseThrow(
-                () -> new AccountException("Account doesn't exist"));
+                () -> new AccountException("Account doesn't exist"));//won't happen
         if(!account1.is_active())
             throw new AccountException("You cannot update the balance since your account is deactivated");
         long transPartyId = account.getTransactionPartyId();
         String transPartyCurrency = account.getTransactionCurrency();
         customerService.isEmptyOrNull(transPartyId+"");
         customerService.isEmptyOrNull(transPartyCurrency);
-        currencyService.isValidCurrencyCode(transPartyCurrency);
+        if(!currencyService.isValidCurrencyCode(transPartyCurrency))
+            throw new IllegalArgumentException("Wrong Currancy Code");
         Mono<ConvertJsonRoot> result;
         double amount = account.getAmount();
+        double limit = amount;
         if(!transPartyCurrency.equals("KWD")){
             result = currencyService.convert("KWD", transPartyCurrency,
                     amount + "", null);
-           double limit = result.block().getResult();
-           if(limit>1000)//1000 KWD
-               throw new AccountException("Cannot perform a transaction that is worth more than 3000 USD");
+           limit = result.block().getResult();
         }
+        if(limit>1000)//1000 KWD
+            throw new AccountException("Cannot perform a transaction that is worth more than 3000 USD");
         //if different currecies --> convert the amount based on the currency
         if(!transPartyCurrency.equals(account1.getCurrency().getCurrencyCode())) {
             result = currencyService.convert(account1.getCurrency().getCurrencyCode(), transPartyCurrency,
@@ -131,7 +140,7 @@ public class AccountService {
     public Mono<ConvertJsonRoot> changeCurrency(AccountRequest account, String to, String date) throws AccountException {
 
         Account account1 = accountRepository.findAccountByAccountId(account.getAccountId()).orElseThrow(
-                () -> new AccountException("Account doesn't exist"));
+                () -> new AccountException("Account doesn't exist"));//won't happen
 
         Mono<ConvertJsonRoot> result = currencyService.convert(to,account1.getCurrency().getCurrencyCode()
                 ,account1.getBalance()+"",date);
@@ -145,13 +154,13 @@ public class AccountService {
 
     public void activateAccount(AccountRequest account) throws AccountException {
         Account account1 = accountRepository.findAccountByAccountId(account.getAccountId()).orElseThrow(
-                () -> new AccountException("Account doesn't exist"));
+                () -> new AccountException("Account doesn't exist"));//won't happen
         account1.set_active(true);
         accountRepository.save(account1);
     }
     public void deactivateAccount(AccountRequest account) throws AccountException {
         Account account1 = accountRepository.findAccountByAccountId(account.getAccountId()).orElseThrow(
-                () -> new AccountException("Account doesn't exist"));
+                () -> new AccountException("Account doesn't exist"));//won't happen
         account1.set_active(false);
         accountRepository.save(account1);
 

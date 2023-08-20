@@ -112,8 +112,8 @@ public class CustomerServiceTests {
     @Test
     public void getCustomer_CustomerDoesntExist_ReturnsException(){
         CustomerRequest validCustomer = createValidCustomerRequest();
-        when(customerRepository.findUserByCivilid(validCustomer.getCivilid())).thenReturn(null);
-        assertThrows(NullPointerException.class, () -> customerService.getCustomer(validCustomer));
+        when(customerRepository.findUserByCivilid(validCustomer.getCivilid())).thenReturn(Optional.empty());
+        assertThrows(CustomerException.class, () -> customerService.getCustomer(validCustomer));
     }
 
     @Test
@@ -135,8 +135,8 @@ public class CustomerServiceTests {
     @Test
     public void editCustomer_CustomerDoesntExist_ReturnsException(){
         CustomerRequest validCustomer = createValidCustomerRequest();
-        when(customerRepository.findUserByCivilid(validCustomer.getCivilid())).thenReturn(null);
-        assertThrows(NullPointerException.class, () -> customerService.editCustomer(validCustomer));
+        when(customerRepository.findUserByCivilid(validCustomer.getCivilid())).thenReturn(Optional.empty());
+        assertThrows(CustomerException.class, () -> customerService.editCustomer(validCustomer));
     }
 
     private CustomerRequest createValidCustomerRequest() {

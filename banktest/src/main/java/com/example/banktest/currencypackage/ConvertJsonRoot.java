@@ -21,7 +21,7 @@ public class ConvertJsonRoot {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    private static class Query{
+    public static class Query{
         @Schema(description = "amount", example = "10")
         private double amount;
         @Schema(description = "from", example = "USD")
@@ -34,7 +34,7 @@ public class ConvertJsonRoot {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    private static class Info{
+    public static class Info{
         @Schema(description = "quote", example = "0.51961")
         private double quote;
         @Schema(description = "timestamp", example = "1104623999")
