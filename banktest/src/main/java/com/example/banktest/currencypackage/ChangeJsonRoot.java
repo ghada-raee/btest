@@ -25,7 +25,7 @@ public class ChangeJsonRoot {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    private static class Quotes{
+    public static class Quotes{
         @Schema(description = "change", example = "-0.1726")
         private double change;
         @Schema(description = "change_pct", example = "-13.4735")
