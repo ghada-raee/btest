@@ -32,12 +32,14 @@ public class CustomerService {
         isEmptyOrNull(fields);
         if(year<=0 || month<=0 || day<=0)
             throw new IllegalArgumentException("The numbers in date of birth must be positive numbers");
+        //when trying to add a customer that already exists
         if(customerRepository.existsByCivilid(civilId))
             throw new CustomerException("Customer exists");
 
         LocalDate dob = LocalDate.of(customer.getYear(),customer.getMonth(), customer.getDay());
         LocalDate currentDate = LocalDate.now();
         Period age = Period.between(dob, currentDate);
+        //age resrtiction 16 & above and not more than 110 years old
         if (age.getYears() < 16 || age.getYears() > 110)
             throw new IllegalArgumentException("Age is not within legal age range");
 
@@ -63,7 +65,7 @@ public class CustomerService {
         String civilId = customer.getCivilid();
         isEmptyOrNull(civilId);
         Customer c = customerRepository.findUserByCivilid((civilId.trim())).orElseThrow(
-                () -> new CustomerException("Customer doesn't exist"));
+                () -> new CustomerException("Customer doesn't exist")); //won't happen
         CustomerResponse customerResponse = new CustomerResponse();
         customerResponse.convert(c);
         return customerResponse;

@@ -92,7 +92,7 @@ public class AccountController {
             }
     )
     public ResponseEntity<Object> listAccounts(
-            @RequestBody AccountRequest account
+            @RequestBody AccountRequest account //although I only need the id, I don't prefer requesting it as parameter
     ) {
 
         List<AccountResponse> accs;
@@ -129,7 +129,7 @@ public class AccountController {
             }
     )
     public ResponseEntity<Object> getaccount(
-            @RequestBody AccountRequest account
+            @RequestBody AccountRequest account //although I only need the id, I don't prefer requesting it as parameter
     ) {
 
         AccountResponse acc;

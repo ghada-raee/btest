@@ -23,7 +23,7 @@ public class AccountService {
     @Autowired //so we don't have to initiate
     private CustomerRepository customerRepository;
 
-    @Autowired //so we don't have to initiate
+    @Autowired
     private AccountRepository accountRepository;
 
     @Autowired
@@ -42,7 +42,7 @@ public class AccountService {
 
         String cid = account.getCustomer_id().trim();
         Customer customer = customerRepository.findUserById(cid).orElseThrow(
-                () -> new CustomerException("Customer doesn't exist"));//won't
+                () -> new CustomerException("Customer doesn't exist"));//won't happen
 
         if(account.getAccountType() == AccountType.SALARY &&
                 accountRepository.existsByCustomerAndAccountType(customer,account.getAccountType()))
@@ -55,6 +55,7 @@ public class AccountService {
         Currency cu = Currency.getInstance(account.getCurrency().trim());
         Account account1 = new Account(customer,accountType,cu);
         customer.setNumOfAccounts(numOfAcc);
+        //to check if generated Id exists in database
         boolean flag = accountRepository.existsByAccountId(account.getAccountId());
         while(flag){
             account1.generateAccounId();
@@ -62,7 +63,7 @@ public class AccountService {
                 break;
         }
         accountRepository.save(account1);
-        customerRepository.save(customer);
+        customerRepository.save(customer); //to update the number of accounts the customer has
         AccountResponse accountResponse = new AccountResponse();
         accountResponse.convert(account1);
         return accountResponse;
@@ -113,26 +114,29 @@ public class AccountService {
                     amount + "", null);
            limit = result.block().getResult();
         }
+        //the amount cannot be more than 1000KWD
         if(limit>1000)//1000 KWD
             throw new AccountException("Cannot perform a transaction that is worth more than 3000 USD");
-        //if different currecies --> convert the amount based on the currency
+
+        //if transaction currencies are different currecies --> convert the amount based on the currency
         if(!transPartyCurrency.equals(account1.getCurrency().getCurrencyCode())) {
             result = currencyService.convert(account1.getCurrency().getCurrencyCode(), transPartyCurrency,
                     amount + "", null);
             amount = result.block().getResult();
         }
 
-       double totalAmount = account1.getBalance() + amount;
-       if(totalAmount<0)
+       double totalAmount1 = account1.getBalance() + amount;
+        //if user was trying to pay and reached below balance
+       if(totalAmount1<0)
            throw new AccountException("You cannot deduct this amount of money because it's below your balance");
        else
-           account1.setBalance(totalAmount);
+           account1.setBalance(totalAmount1);
         accountRepository.save(account1);
         Transaction transaction = new Transaction(account1.getAccountId(),amount,transPartyId+"");
         transactionRepository.save(transaction);
 
         TransactionResponse transactionResponse = new TransactionResponse();
-        transactionResponse.convert(transaction,totalAmount);
+        transactionResponse.convert(transaction,totalAmount1);
 
         return transactionResponse;
     }
